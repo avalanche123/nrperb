@@ -1,0 +1,63 @@
+#!/usr/bin/env ruby
+
+require "rubygems"
+require "bundler/setup"
+
+require 'optparse'
+require 'nrpe'
+
+options = {
+  :command => '_NRPE_CHECK'
+}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: check_nrpe -H <host> [-n] [-u] [-p <port>] [-t <timeout>] [-c <command>] [<arglist...>]"
+
+  opts.separator ""
+  opts.separator "Specific options:"
+
+  opts.on("-n", nil, "Do not use ssl") do |n|
+    options[:use_ssl] = false
+  end
+
+  opts.on("-u", nil, "Make socket timeouts return an UNKNOWN state instead of CRITICAL") do |n|
+    options[:unknown_on_timeout] = true
+  end
+
+  opts.on("-H", :REQUIRED, "=MANDATORY", "The address of the host running the NRPE daemon") do |host|
+    options[:host] = host
+  end
+
+  opts.on("-p", "=MANDATORY", Integer, "The port on which the daemon is running (default=5666)") do |port|
+    options[:port] = port
+  end
+
+  opts.on("-t", "=MANDATORY", Integer, "Number of seconds before connection times out (default=10)") do |timeout|
+    options[:timeout] = timeout
+  end
+
+  opts.on("-c", "=MANDATORY", String, "The name of the command that the remote daemon should run") do |command|
+    options[:command] = command
+  end
+
+  opts.separator ""
+  opts.separator "Optional arguments that should be passed to the command."
+  opts.separator "Multiple arguments should be separated by a space."
+  opts.separator "If provided, this must be the last option supplied on the command line."
+  opts.separator ""
+end.parse!
+
+NRPE.session(options) do |session|
+  begin
+    result = session.execute(options[:command])
+    $stdout.puts(result.text)
+    exit result.code
+  rescue Errno::ETIMEDOUT, Timeout::Error => e
+    $stderr.puts 'Socket timed out'
+    exit 2 if options[:unknown_on_timeout]
+    exit 3
+  rescue Errno::ECONNREFUSED => e
+    $stderr.puts 'Connection refused'
+    exit 3
+  end
+end
