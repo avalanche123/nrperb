@@ -12,11 +12,11 @@ module NRPE
       socket.close if @socket
     end
 
-    def execute(check, params = nil)
-      if params.nil? or params.count == 0
+    def execute(check, *params)
+      if params.empty?
         arguments = ""
       else
-        arguments = params.join("!").prepend("!")
+        arguments = "!" + params.join("!")
       end
 
       send_query("#{check}#{arguments}")
