@@ -12,8 +12,14 @@ module NRPE
       socket.close if @socket
     end
 
-    def execute(check)
-      send_query(check)
+    def execute(check, params = nil)
+      if params.nil? or params.count == 0
+        arguments = ""
+      else
+        arguments = params.join("!").prepend("!")
+      end
+
+      send_query("#{check}#{arguments}")
       response = read_response
 
       Result.new(response.result_code, response.buffer)

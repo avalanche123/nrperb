@@ -30,6 +30,20 @@ NRPE.session :host => '10.190.157.127', :port => 5666 do |session|
 end
 ```
 
+You can pass arguments to the check, but your NRPE server must accept them
+
+```ruby
+require 'nrpe'
+
+NRPE.session :host => '10.190.157.127', :port => 5666 do |session|
+  result = session.execute('check_load', [90, 95])
+  puts result.ok?
+  puts result.warning?
+  puts result.critical?
+  puts result.text
+end
+```
+
 ### Options
 
 ```ruby
