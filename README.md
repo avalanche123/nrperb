@@ -36,7 +36,7 @@ You can pass arguments to the check, but your NRPE server must accept them
 require 'nrpe'
 
 NRPE.session :host => '10.190.157.127', :port => 5666 do |session|
-  result = session.execute('check_load', [90, 95])
+  result = session.execute('check_load', 90, 95)
   puts result.ok?
   puts result.warning?
   puts result.critical?
