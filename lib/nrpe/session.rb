@@ -46,6 +46,7 @@ module NRPE
       options[:port]    ||= 5666
       options[:timeout] ||= 10
       options[:use_ssl] ||= true
+      options[:socket]  ||= TCPSocket
       @options = options
     end
 
@@ -54,7 +55,7 @@ module NRPE
         optval = [Integer(@options[:timeout]), 0].pack("l_2")
 
         socket = timeout(@options[:timeout]) do
-          TCPSocket.open(@options[:host], @options[:port])
+          @options[:socket].open(@options[:host], @options[:port])
         end
 
         socket.setsockopt(:SOCKET, :RCVTIMEO, optval)
